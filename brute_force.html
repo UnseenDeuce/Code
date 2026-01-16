@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Brute Force Attack Simulator</title>
+    <style>
+        :root {
+            --neon-blue: #00f5ff;
+            --neon-green: #00ff99;
+            --neon-pink: #ff3cac;
+            --bg-dark: #000205; 
+            --panel-bg: rgba(0, 5, 10, 0.92);
+        }
+
+        * { box-sizing: border-box; }
+        body, html { 
+            height: 100%; margin: 0; padding: 0; 
+            background-color: var(--bg-dark);
+            font-family: 'Monaco', monospace;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        #bgCanvas { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100vh; 
+            z-index: 0; 
+            display: block;
+        }
+
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+            z-index: 10;
+            background-size: 100% 3px;
+            pointer-events: none;
+        }
+
+        .container {
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; width: 100vw;
+            position: relative; 
+            z-index: 5;
+        }
+
+        .simulator-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 50px rgba(0, 245, 255, 0.15);
+            padding: 35px; border-radius: 12px;
+            width: 750px; max-width: 90%;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            transition: border-color 0.2s;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 2px); filter: hue-rotate(90deg); }
+            40% { transform: translate(-3px, -2px); }
+            60% { transform: translate(3px, 2px); }
+            80% { transform: translate(3px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .glitch-active {
+            animation: glitch 0.2s ease-in-out;
+            border-color: var(--neon-pink) !important;
+        }
+
+        h1 { 
+            color: var(--neon-blue); 
+            letter-spacing: 8px; 
+            text-shadow: 0 0 15px var(--neon-blue); 
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+        }
+
+        input {
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--neon-blue);
+            padding: 15px; color: var(--neon-green);
+            font-size: 1.3rem; width: 80%; border-radius: 4px;
+            outline: none; text-align: center;
+            box-shadow: inset 0 0 10px rgba(0, 245, 255, 0.1);
+        }
+
+        button {
+            margin-top: 20px; padding: 15px 40px; border: none; border-radius: 4px;
+            background: var(--neon-blue); color: #000; font-weight: bold;
+            cursor: pointer; transition: 0.3s; text-transform: uppercase;
+            font-size: 1rem;
+        }
+
+        #hacking-area { margin-top: 25px; display: none; }
+        .stats-container {
+            display: flex; justify-content: space-around;
+            margin-bottom: 20px; border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+        }
+        .stat-value { font-size: 1.6rem; color: var(--neon-blue); font-weight: bold; }
+        #timer { color: var(--neon-pink); }
+        #entropy-val { color: var(--neon-blue); }
+
+        .current-guess { 
+            font-size: 3.2rem; font-weight: bold; color: var(--neon-green); 
+            letter-spacing: 8px; margin: 20px 0;
+            text-shadow: 0 0 12px var(--neon-green);
+        }
+
+        .hacker-log {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #1a1a1a;
+            height: 140px;
+            margin-top: 20px; padding: 12px;
+            overflow: hidden; text-align: left;
+            font-size: 0.85rem; color: #444;
+        }
+        .log-entry.sys { color: var(--neon-blue); }
+        .log-entry.match { color: var(--neon-green); font-weight: bold; }
+        .log-entry.warn { color: var(--neon-pink); font-style: italic; }
+    </style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<div class="container">
+    <div class="simulator-card">
+        <h1>BRUTE FORCE ATTACK SIMULATOR</h1>
+        
+        <div class="input-group">
+            <input type="text" id="targetPwd" placeholder="ENTER ACCESS CODE" maxlength="15" oninput="updateEntropy()">
+            <br>
+            <button id="startBtn" onclick="startBruteForce()">INITIATE BREACH</button>
+        </div>
+
+        <div id="hacking-area">
+            <div class="stats-container">
+                <div class="stat-box">
+                    <span id="timer" class="stat-value">0s</span>
+                    <div style="font-size: 0.7rem; color: #555;">REAL LIFE CRACKTIME</div>
+                </div>
+                <div class="stat-box">
+                    <span id="entropy-val" class="stat-value">0 bits</span>
+                    <div style="font-size: 0.7rem; color: #555;">ENTROPY</div>
+                </div>
+            </div>
+            
+            <div id="displayGuess" class="current-guess">----</div>
+            <div class="hacker-log" id="logWindow"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height, columns;
+    const fontSize = 18;
+    let drops = [];
+
+    function initMatrix() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        columns = Math.floor(width / fontSize);
+        drops = [];
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.random() * -100; 
+        }
+    }
+
+    function drawMatrix() {
+        ctx.fillStyle = "rgba(0, 2, 5, 0.15)";
+        ctx.fillRect(0, 0, width, height);
+        ctx.font = fontSize + "px monospace";
+        ctx.fillStyle = "#00ff99";
+        ctx.shadowBlur = 0;
+
+        for (let i = 0; i < drops.length; i++) {
+            const text = Math.random() > 0.5 ? "0" : "1";
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            if (drops[i] * fontSize > height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    }
+
+    window.addEventListener('resize', initMatrix);
+    initMatrix();
+    setInterval(drawMatrix, 60);
+
+    let isHacking = false, timerInterval;
+
+    function addLog(text, type = 'fail') {
+        const log = document.getElementById('logWindow');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.innerText = `> ${text}`;
+        log.prepend(entry);
+        if (log.childNodes.length > 15) log.removeChild(log.lastChild);
+    }
+
+    function updateEntropy() {
+        const pwd = document.getElementById('targetPwd').value;
+        const entropyDisplay = document.getElementById('entropy-val');
+        if (!pwd) {
+            entropyDisplay.innerText = "0 bits";
+            return;
+        }
+        
+        let pool = 0;
+        if (/[a-z]/.test(pwd)) pool += 26;
+        if (/[A-Z]/.test(pwd)) pool += 26;
+        if (/[0-9]/.test(pwd)) pool += 10;
+        if (/[^a-zA-Z0-9]/.test(pwd)) pool += 32;
+
+        const entropy = Math.floor(pwd.length * Math.log2(pool));
+        entropyDisplay.innerText = `${entropy} bits`;
+    }
+
+    function formatTime(seconds) {
+        if (seconds < 1) return seconds.toFixed(3) + "s";
+        if (seconds < 60) return seconds.toFixed(1) + "s";
+        if (seconds < 3600) return (seconds / 60).toFixed(1) + "m";
+        if (seconds < 86400) return (seconds / 3600).toFixed(1) + "h";
+        if (seconds < 31536000) return (seconds / 86400).toFixed(1) + "d";
+        return (seconds / 31536000).toFixed(1) + "y";
+    }
+
+    async function startBruteForce() {
+        const target = document.getElementById('targetPwd').value;
+        const card = document.querySelector('.simulator-card');
+        if (!target || isHacking) return;
+
+        isHacking = true;
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('hacking-area').style.display = 'block';
+        const display = document.getElementById('displayGuess');
+        display.classList.remove('success');
+        
+        updateEntropy();
+        
+        // --- REAL WORLD CALCULATION ---
+        const charsetSize = 62; 
+        const combinations = Math.pow(charsetSize, target.length);
+        const hashesPerSecond = 100000000000; // 100 GH/s Attack
+        const totalRealSeconds = combinations / hashesPerSecond;
+
+        addLog(`SCANNING FOR COMMON VULNERABILITIES...`, "sys");
+        const commonPasswords = ["123456", "password", "12345678", "qwerty", "admin", "welcome"];
+        
+        if (commonPasswords.includes(target.toLowerCase())) {
+            await new Promise(r => setTimeout(r, 800));
+            addLog(`MATCH FOUND IN KNOWN DICTIONARY`, "warn");
+            document.getElementById('timer').innerText = "0.001s";
+            display.innerText = target;
+            display.classList.add('success');
+            card.classList.add('glitch-active');
+            setTimeout(() => card.classList.remove('glitch-active'), 200);
+            document.getElementById('startBtn').disabled = false;
+            isHacking = false;
+            return;
+        }
+
+        addLog(`TARGET ENTROPY: ${document.getElementById('entropy-val').innerText}`, "sys");
+        addLog(`ESTIMATED COMPLETION: ${formatTime(totalRealSeconds)}`, "warn");
+
+        // Timer Logic: Scaling visually to real-world math
+        let currentRealSeconds = 0;
+        const stepsPerChar = 20; // Visual flavor
+        const timeIncrement = totalRealSeconds / (target.length * stepsPerChar);
+
+        timerInterval = setInterval(() => {
+            currentRealSeconds += timeIncrement;
+            document.getElementById('timer').innerText = formatTime(currentRealSeconds);
+        }, 30);
+
+        let currentResult = "";
+        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        for (let i = 0; i < target.length; i++) {
+            let foundChar = false;
+            for(let step = 0; step < stepsPerChar; step++) {
+                let randomChar = charset[Math.floor(Math.random() * charset.length)];
+                display.innerText = currentResult + randomChar + "_".repeat(target.length - i - 1);
+                await new Promise(r => setTimeout(r, 20));
+
+                if (step === stepsPerChar - 1) { // Force the match at the end of visual cycle
+                    currentResult += target[i];
+                    foundChar = true;
+                    card.classList.add('glitch-active');
+                    setTimeout(() => card.classList.remove('glitch-active'), 200);
+                    addLog(`NODE ${i+1} DECRYPTED: ${target[i]}`, "sys");
+                }
+            }
+        }
+        
+        isHacking = false;
+        clearInterval(timerInterval);
+        document.getElementById('timer').innerText = formatTime(totalRealSeconds);
+        document.getElementById('startBtn').disabled = false;
+        display.classList.add('success');
+        display.innerText = target;
+        addLog("SYSTEM OVERRIDDEN", "match");
+    }
+</script>
+<a href="index.html" style="
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+">
+    <span style="font-size: 1.2rem;">🏠</span> Home
+</a>
+
+<style>
+    /* Hover effect for the home button */
+    a[href="index.html"]:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+</style>
+</body>
+</html>

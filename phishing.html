@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Phishing Threat Analysis</title>
+    <style>
+        :root {
+            --ui-blue: #00d4ff;
+            --ui-amber: #ffaa00;
+            --ui-red: #ff4444;
+            --bg-dark: #020810;
+            --panel-hex: rgba(0, 20, 40, 0.8);
+            /* New Header Colors */
+            --header-main: #ffffff;
+            --header-glow: #00f2ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        #canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.2; }
+
+        header {
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--ui-blue);
+            background: linear-gradient(to bottom, #001a33, transparent);
+        }
+
+        .glitch-title {
+            font-size: 2.8rem;
+            letter-spacing: 3px;
+            color: var(--header-main);
+            text-transform: uppercase;
+            /* Updated shadow to Neon Cyan */
+            text-shadow: 0 0 10px var(--header-glow), 0 0 20px var(--header-glow);
+            font-family: 'Segoe UI', 'Arial Black', sans-serif;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--header-glow);
+            font-size: 1.1rem;
+            letter-spacing: 5px;
+            margin-top: 15px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .phish-dissection {
+            background: #fff;
+            color: #333;
+            border-radius: 8px;
+            padding: 0;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+            margin-bottom: 50px;
+        }
+
+        .email-header {
+            background: #f1f3f4;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            font-family: Arial, sans-serif;
+        }
+
+        .email-body {
+            padding: 40px;
+            font-size: 1.1rem;
+            color: #444;
+        }
+
+        /* TOOLTIP STYLE */
+        #tooltip {
+            position: fixed;
+            display: none;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid var(--ui-amber);
+            font-size: 0.85rem;
+            z-index: 1000;
+            pointer-events: none;
+            max-width: 280px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .hotspot {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: var(--ui-red);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            animation: pulse 2s infinite;
+            z-index: 10;
+            box-shadow: 0 0 15px var(--ui-red);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+            70% { transform: scale(1.2); box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        }
+
+        .intel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding-bottom: 100px;
+        }
+
+        .card {
+            background: var(--panel-hex);
+            border: 1px solid var(--ui-blue);
+            padding: 25px;
+            border-radius: 4px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Highlight effect when hotspot is clicked */
+        .card-highlight {
+            border-color: var(--ui-amber) !important;
+            background: rgba(255, 170, 0, 0.15) !important;
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.4);
+        }
+
+        .card:hover { border-color: var(--ui-amber); background: rgba(0, 40, 80, 0.9); }
+        .card h3 { color: var(--ui-amber); margin-bottom: 15px; text-transform: uppercase; font-size: 0.9rem; }
+
+        .red-flag-label {
+            display: inline-block;
+            background: var(--ui-red);
+            color: #fff;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="tooltip"></div>
+
+<header>
+    <h1 class="glitch-title">Phishing Threat Analysis</h1>
+    <p class="subtitle">CYBER SECURITY 101</p>
+</header>
+
+<div class="container">
+    
+    <div style="margin-bottom: 20px; color: var(--ui-amber);">⚡ HOVER for quick info | CLICK to highlight full details.</div>
+
+    <div class="phish-dissection">
+        <div class="hotspot" style="top: 25px; left: 10px;" 
+             onmouseover="showTooltip(event, 1)" 
+             onmouseout="hideTooltip()" 
+             onclick="scrollToDetails(1)">1</div>
+        
+        <div class="hotspot" style="top: 115px; left: 160px;" 
+             onmouseover="showTooltip(event, 2)" 
+             onmouseout="hideTooltip()" 
+             onclick="scrollToDetails(2)">2</div>
+        
+        <div class="hotspot" style="top: 290px; left: 32px;" 
+             onmouseover="showTooltip(event, 3)" 
+             onmouseout="hideTooltip()" 
+             onclick="scrollToDetails(3)">3</div>
+        
+        <div class="hotspot" style="top: 350px; left: 60%;" 
+             onmouseover="showTooltip(event, 4)" 
+             onmouseout="hideTooltip()" 
+             onclick="scrollToDetails(4)">4</div>
+
+        <div class="email-header">
+            <strong>From:</strong> Secure Bank Alerts &lt;support@verify-bankaccount-302.net&gt;<br>
+            <strong>Subject:</strong> URGENT: Unauthorized login attempt detected!
+        </div>
+        <div class="email-body">
+            <p>Dear Customer,</p><br>
+            <p>Our system has detected an unusual login attempt on your account from an unrecognized IP address in a foreign country.</p><br>
+            <p>For your protection, we have temporarily locked your account. To restore access, you must verify your identity immediately by clicking the button below:</p><br>
+            <p style="text-align: center;">
+                <a href="#" style="background: #0052cc; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">SECURE LOGIN NOW</a>
+            </p><br>
+            <p>If you do not complete verification within 24 hours, your account will be permanently suspended to prevent fraud.</p><br>
+            <p>Thank you,<br>The Security Team</p>
+        </div>
+    </div>
+
+    <div class="intel-grid" id="intel-target">
+        <div class="card" id="card-1">
+            <span class="red-flag-label">CRITICAL</span>
+            <h3>1. The Sender Domain</h3>
+            <p>Always hover over the "From" name. Attackers use legitimate-sounding names but the actual email address is usually a random domain like <strong>.net</strong> instead of <strong>.com</strong>.</p>
+        </div>
+        <div class="card" id="card-2">
+            <span class="red-flag-label">TECHNICAL</span>
+            <h3>2. Generic Greetings</h3>
+            <p>Real banks know your name. "Dear Customer" or "Dear Member" is a sign that the email was sent to thousands of people at once.</p>
+        </div>
+        <div class="card" id="card-3">
+            <span class="red-flag-label">PSYCHOLOGICAL</span>
+            <h3>3. Artificial Urgency</h3>
+            <p>Phishing relies on fear. Words like "Immediately," "24 hours," and "Permanently Suspended" are designed to make you act before you think.</p>
+        </div>
+        <div class="card" id="card-4">
+            <span class="red-flag-label">MALICIOUS</span>
+            <h3>4. Hidden Hyperlinks</h3>
+            <p>Before clicking, hover your mouse over any button. Look at the bottom left of your browser to see the <strong>real</strong> destination. If it doesn't match the company site, it's a trap.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Canvas animation background
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = resize;
+    resize();
+
+    function draw() {
+        ctx.fillStyle = 'rgba(2, 8, 16, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#00d4ff';
+        for(let i=0; i<20; i++) {
+            ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 1, 1);
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    const intelData = {
+        1: "Notice the sender is '.net' instead of '.com'. Real banks don't use secondary domains.",
+        2: "Banks address you by name. Generic greetings are a sign of mass-spamming.",
+        3: "Threatening 'Permanent Suspension' is a tactic to force a panicked, fast reaction.",
+        4: "This button masks a malicious link. Hovering over it would reveal a non-bank URL."
+    };
+
+    const tooltip = document.getElementById('tooltip');
+
+    function showTooltip(e, id) {
+        tooltip.innerHTML = `<strong>FLAG #${id}:</strong><br>${intelData[id]}`;
+        tooltip.style.display = 'block';
+        moveTooltip(e);
+    }
+
+    function moveTooltip(e) {
+        tooltip.style.left = (e.clientX + 15) + 'px';
+        tooltip.style.top = (e.clientY + 15) + 'px';
+    }
+
+    function hideTooltip() {
+        tooltip.style.display = 'none';
+    }
+
+    function scrollToDetails(id) {
+        const card = document.getElementById(`card-${id}`);
+        const grid = document.getElementById('intel-target');
+        
+        grid.scrollIntoView({ behavior: 'smooth' });
+
+        // Highlight visual feedback
+        card.classList.add('card-highlight');
+        setTimeout(() => {
+            card.classList.remove('card-highlight');
+        }, 760);
+    }
+
+    document.querySelectorAll('.hotspot').forEach(item => {
+        item.addEventListener('mousemove', moveTooltip);
+    });
+</script>
+<a href="index.html" style="
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+">
+    <span style="font-size: 1.2rem;">🏠</span> Home
+</a>
+
+<style>
+    /* Hover effect for the home button */
+    a[href="index.html"]:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+</style>
+<button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" id="topBtn" title="Go to top">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</button>
+
+<style>
+    #topBtn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: #0052D4;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 15px; /* Adjusts size of the SVG arrow inside */
+    }
+
+    /* The SVG Icon Style */
+    #topBtn svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Hover Effects */
+    #topBtn:hover {
+        background: #00d2ff;
+        transform: translateY(-5px) scale(1.1);
+        box-shadow: 0 8px 25px rgba(0, 210, 255, 0.5);
+    }
+
+    /* Subtle pulse animation to make it vibrant */
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(0, 210, 255, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(0, 210, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 210, 255, 0); }
+    }
+
+    #topBtn {
+        animation: pulse 2s infinite;
+    }
+</style>		
+</body>
+</html>

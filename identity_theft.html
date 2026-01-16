@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Identity Theft</title>
+    <style>
+        :root {
+            --matrix-green: #00ff41;
+            --alert-orange: #ff9900;
+            --danger-red: #ff3333;
+            --neon-blue: #00f5ff;
+            --bg-black: #050505;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body, html { 
+            height: 100%; width: 100%;
+            /* IMPROVED BACKGROUND */
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), 
+                        url('idtheft_bg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: var(--bg-black);
+            font-family: 'Share Tech Mono', monospace;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        /* --- MATRIX BACKGROUND --- */
+        #matrixCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            opacity: 0.5; 
+            pointer-events: none;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 10; 
+        }
+
+        /* --- GLOWING BORDER ANIMATION --- */
+        .forensic-panel {
+            background: rgba(0, 10, 15, 0.9); 
+            width: 1100px;
+            max-width: 95%;
+            height: 80vh;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            border: 2px solid var(--matrix-green);
+            border-radius: 4px;
+            animation: borderGlow 8s infinite alternate;
+            backdrop-filter: blur(5px); 
+        }
+
+        @keyframes borderGlow {
+            0% { border-color: var(--matrix-green); box-shadow: 0 0 20px rgba(0, 255, 65, 0.4); }
+            33% { border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(0, 245, 255, 0.4); }
+            66% { border-color: var(--alert-orange); box-shadow: 0 0 20px rgba(255, 153, 0, 0.4); }
+            100% { border-color: var(--danger-red); box-shadow: 0 0 20px rgba(255, 51, 51, 0.4); }
+        }
+
+        .data-vault {
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding-right: 20px;
+            overflow-y: auto;
+        }
+
+        .data-chip {
+background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    /* ADD THIS: Ensures the slide back and forth is smooth */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    position: relative;
+    left: 0;
+        }
+
+        .data-chip:hover {
+            border-color: var(--matrix-green);
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .data-chip.active {
+           border-color: var(--alert-orange);
+    background: rgba(255, 153, 0, 0.15);
+    box-shadow: 0 0 15px rgba(255, 153, 0, 0.2);
+    /* ADD THIS: Moves the chip 15px to the right */
+    transform: translateX(15px); 
+    /* OPTIONAL: Adds a glow to the right edge to lead the eye */
+    border-right: 4px solid var(--alert-orange);
+        }
+
+.data-chip:hover:not(.active) {
+    border-color: var(--matrix-green);
+    background: rgba(0, 255, 65, 0.1);
+    transform: translateX(5px); /* Slight nudge on hover */
+}
+
+        .reconstruction-display {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .visualizer {
+            flex-grow: 1;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #222;
+            margin-bottom: 20px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+
+        .intel-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .threat-meter {
+            height: 40px;
+            background: #111;
+            border: 1px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #meter-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--matrix-green), var(--alert-orange), var(--danger-red));
+            transition: 1s ease-in-out;
+        }
+
+        h2 { color: var(--matrix-green); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        p { color: #ccc; font-size: 0.9rem; line-height: 1.4; }
+
+    </style>
+    
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+
+<div class="container">
+    <div class="forensic-panel">
+        
+        <div class="data-vault">
+            <h2 style="font-size: 1.2rem;">Data Fragments</h2>
+            <p style="margin-bottom: 20px; color: #888;"></p>
+            
+            <div class="data-chip" onclick="showIntel(this, 'social')">
+                <strong>Social Media Photo</strong>
+                <p>Location: Airport Lounge</p>
+            </div>
+            
+            <div class="data-chip" onclick="showIntel(this, 'email')">
+                <strong>Public Email</strong>
+                <p>Source: Forum Leak</p>
+            </div>
+
+            <div class="data-chip" onclick="showIntel(this, 'trash')">
+                <strong>Physical Mail</strong>
+                <p>Source: Discarded Statement</p>
+            </div>
+
+            <div class="data-chip" onclick="showIntel(this, 'wifi')">
+                <strong>Public Wi-Fi</strong>
+                <p>Source: Coffee Shop Session</p>
+            </div>
+        </div>
+
+        <div class="reconstruction-display">
+            <div class="visualizer">
+                <div id="default-msg" class="intel-overlay">
+                    <div style="font-size: 4rem; opacity: 0.2;">[ID]</div>
+                    <h3>SELECT A DATA FRAGMENT TO BEGIN DECONSTRUCTION</h3>
+                </div>
+
+                <div id="intel-content" class="intel-overlay" style="display: none;">
+                    <h2 id="intel-title" style="color: var(--alert-orange);"></h2>
+                    <p id="intel-description" style="font-size: 1.1rem; max-width: 500px; margin-bottom: 20px;"></p>
+                    <div style="border: 1px solid #444; padding: 15px; background: rgba(0,0,0,0.8);">
+                        <strong style="color: var(--danger-red);">DARK WEB APPLICATION:</strong>
+                        <p id="intel-exploit"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="font-size: 0.8rem; color: #888;">IDENTITY COMPROMISE LEVEL</span>
+                    <span id="meter-text" style="font-size: 0.8rem; color: var(--matrix-green);">SAFE</span>
+                </div>
+                <div class="threat-meter">
+                    <div id="meter-fill"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, columns;
+    const fontSize = 16;
+    let drops = [];
+    const colors = ["#00ff41", "#00f5ff", "#ff9900", "#ff3333"];
+
+    function initMatrix() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        columns = Math.floor(w / fontSize);
+        for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+    }
+
+    function drawMatrix() {
+        ctx.clearRect(0, 0, w, h);
+        
+        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+        ctx.fillRect(0, 0, w, h);
+        
+        ctx.font = fontSize + "px monospace";
+
+        for (let i = 0; i < drops.length; i++) {
+            ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+            const text = String.fromCharCode(0x30A0 + Math.random() * 33);
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+            if (drops[i] * fontSize > h && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    }
+    window.addEventListener('resize', initMatrix);
+    initMatrix();
+    setInterval(drawMatrix, 50);
+
+    const intelMap = {
+        social: {
+            title: "Metadata & Surroundings",
+            desc: "A simple photo reveals your physical location, your travel habits, and sometimes even your home address through background clues.",
+            exploit: "Used for 'Social Engineering'. An attacker calls your bank claiming to be you, citing recent travel for verification.",
+            threat: 25
+        },
+        email: {
+            title: "Credential Chaining",
+            desc: "If your email appears in a leak, attackers have a starting point for every other account you own.",
+            exploit: "Attackers use bots to test your password combo on thousands of other banking and shopping sites.",
+            threat: 50
+        },
+        trash: {
+            title: "Physical PII Leakage",
+            desc: "Discarded statements contain names, addresses, and partial account numbers.",
+            exploit: "Used to open 'Synthetic Identities' by combining real data with fake details to bypass security.",
+            threat: 75
+        },
+        wifi: {
+            title: "Unencrypted Data Siphoning",
+            desc: "Public Wi-Fi can be intercepted. Session tokens can be stolen if the site isn't fully encrypted.",
+            exploit: "The attacker 'becomes' you in the eyes of the server without ever needing your actual password.",
+            threat: 100
+        }
+    };
+
+    function showIntel(element, key) {
+        document.querySelectorAll('.data-chip').forEach(chip => chip.classList.remove('active'));
+        element.classList.add('active');
+
+        document.getElementById('default-msg').style.display = 'none';
+        const content = document.getElementById('intel-content');
+        const data = intelMap[key];
+        
+        content.style.display = 'flex';
+        document.getElementById('intel-title').innerText = data.title;
+        document.getElementById('intel-description').innerText = data.desc;
+        document.getElementById('intel-exploit').innerText = data.exploit;
+
+        const fill = document.getElementById('meter-fill');
+        const meterText = document.getElementById('meter-text');
+        fill.style.width = data.threat + "%";
+
+        if (data.threat <= 25) { meterText.innerText = "VULNERABLE"; meterText.style.color = "var(--matrix-green)"; }
+        else if (data.threat <= 50) { meterText.innerText = "ELEVATED"; meterText.style.color = "var(--alert-orange)"; }
+        else if (data.threat <= 75) { meterText.innerText = "HIGH RISK"; meterText.style.color = "var(--danger-red)"; }
+ 	else { meterText.innerText = "CRITICAL COMPROMISE"; meterText.style.color = "var(--danger-red)"; }
+   }
+</script>
+
+<a href="index.html" style="
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+">
+    <span style="font-size: 1.2rem;">🏠</span> Home
+</a>
+
+<style>
+    a[href="index.html"]:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+</style>
+</body>
+</html>
