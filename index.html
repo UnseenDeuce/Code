@@ -8,23 +8,88 @@
         * {
             box-sizing: border-box;
         }
+body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    color: #ffffff;
+    overflow-x: hidden;
 
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            /* NEW BACKGROUND: ELECTRIC SEA (NO PURPLE/PINK) */
-            background: linear-gradient(135deg, #00172d 0%, #0052d4 45%, #00d2ff 100%);
-            background-attachment: fixed;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            color: #ffffff;
-            overflow-x: hidden;
-        }
+    /* ANIMATED MESH (NO BLACK) */
+    background-color: #004a99;
+    background-image: 
+        radial-gradient(at 0% 0%, #0052d4 0px, transparent 50%),
+        radial-gradient(at 50% 0%, #00d2ff 0px, transparent 50%),
+        radial-gradient(at 100% 0%, #0072ff 0px, transparent 50%),
+        radial-gradient(at 0% 100%, #00c6ff 0px, transparent 50%),
+        radial-gradient(at 100% 100%, #4facfe 0px, transparent 50%);
+    background-size: 100% 100%;
+    animation: meshGradient 10s ease-in-out infinite alternate;
+    background-attachment: fixed;
+/* This creates a vignette that pushes the eye toward the center and makes particles shine */
+    box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.3);
+}
 
+@keyframes meshGradient {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 20% 10%; }
+}
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Bright, glowing particles */
+    background-image: 
+        radial-gradient(circle, rgba(255, 255, 255, 0.6) 2px, transparent 2px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+    background-size: 100px 100px, 60px 60px;
+    background-position: 0 0, 30px 30px;
+    /* This creates the upward motion */
+    animation: moveUpwards 20s linear infinite;
+    z-index: -1;
+    pointer-events: none;
+
+}
+
+@keyframes moveUpwards {
+    from {
+        background-position: 0 0, 30px 30px;
+    }
+    to {
+        /* Moving the background-position vertically to a negative value pulls it UP */
+        background-position: 0 -1000px, 30px -500px;
+    }
+}
+@keyframes particles {
+    from { background-position: 0 0; }
+    to { background-position: 0 -1000px; }
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Very faint white dots/grid */
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    z-index: -1;
+    pointer-events: none;
+}
         header {
             text-align: center;
             margin-bottom: 30px;
@@ -74,12 +139,13 @@
             border: 4px solid transparent;
         }
 
-        .btn-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-            background: #f8fbff;
-            border-color: #00d2ff;
-        }
+/* Update your existing .btn-card:hover */
+.btn-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 30px rgba(0, 210, 255, 0.6); /* Cyan glow */
+    background: #f8fbff;
+    border-color: #00d2ff;
+}
 
         /* Shrinks the box BY 5% when pressed */
         .btn-card:active {
@@ -160,7 +226,86 @@
                 max-width: 90%;
             }
         }
+/* Animation for page load */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-card {
+    /* Add this line to your existing .btn-card style */
+    animation: fadeInUp 0.8s ease backwards;
+}
+
+/* Stagger the timing so they pop in one by one */
+.btn-card:nth-child(1) { animation-delay: 0.1s; }
+.btn-card:nth-child(2) { animation-delay: 0.2s; }
+.btn-card:nth-child(3) { animation-delay: 0.3s; }
+.btn-card:nth-child(4) { animation-delay: 0.4s; }
+.icon {
+    display: inline-block;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+/* Cards fade and slide up when page opens */
+.btn-card {
+    animation: slideUp 0.8s ease-out backwards;
+}
+
+/* Icons drift up and down slowly */
+.icon {
+    display: inline-block;
+    animation: floaty 4s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+/* Staggered entry for cards */
+.btn-card:nth-child(1) { animation-delay: 0.1s; }
+.btn-card:nth-child(2) { animation-delay: 0.2s; }
+.btn-card:nth-child(3) { animation-delay: 0.3s; }
+.btn-card:nth-child(4) { animation-delay: 0.4s; }
+.btn-card {
+    /* Adding a fade-in slide effect */
+    animation: cardEntrance 0.7s ease-out backwards;
+}
+
+.btn-card:nth-child(1) { animation-delay: 0.1s; }
+.btn-card:nth-child(2) { animation-delay: 0.2s; }
+.btn-card:nth-child(3) { animation-delay: 0.3s; }
+.btn-card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes cardEntrance {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
     </style>
+
 </head>
 <body>
 
