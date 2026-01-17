@@ -285,28 +285,44 @@ background: rgba(255, 255, 255, 0.05);
         }
     };
 
-    function showIntel(element, key) {
-        document.querySelectorAll('.data-chip').forEach(chip => chip.classList.remove('active'));
-        element.classList.add('active');
+function showIntel(element, key) {
+    // 1. Existing: Handle active states for chips
+    document.querySelectorAll('.data-chip').forEach(chip => chip.classList.remove('active'));
+    element.classList.add('active');
 
-        document.getElementById('default-msg').style.display = 'none';
-        const content = document.getElementById('intel-content');
-        const data = intelMap[key];
-        
-        content.style.display = 'flex';
-        document.getElementById('intel-title').innerText = data.title;
-        document.getElementById('intel-description').innerText = data.desc;
-        document.getElementById('intel-exploit').innerText = data.exploit;
+    // 2. NEW: Stop the scan animation
+    const visualizer = document.querySelector('.visualizer');
+    visualizer.classList.add('scanning-stopped');
 
-        const fill = document.getElementById('meter-fill');
-        const meterText = document.getElementById('meter-text');
-        fill.style.width = data.threat + "%";
+    // 3. Existing: Show content
+    document.getElementById('default-msg').style.display = 'none';
+    const content = document.getElementById('intel-content');
+    const data = intelMap[key];
+    
+    content.style.display = 'flex';
+    document.getElementById('intel-title').innerText = data.title;
+    document.getElementById('intel-description').innerText = data.desc;
+    document.getElementById('intel-exploit').innerText = data.exploit;
 
-        if (data.threat <= 25) { meterText.innerText = "VULNERABLE"; meterText.style.color = "var(--matrix-green)"; }
-        else if (data.threat <= 50) { meterText.innerText = "ELEVATED"; meterText.style.color = "var(--alert-orange)"; }
-        else if (data.threat <= 75) { meterText.innerText = "HIGH RISK"; meterText.style.color = "var(--danger-red)"; }
- 	else { meterText.innerText = "CRITICAL COMPROMISE"; meterText.style.color = "var(--danger-red)"; }
-   }
+    // 4. Existing: Update Threat Meter
+    const fill = document.getElementById('meter-fill');
+    const meterText = document.getElementById('meter-text');
+    fill.style.width = data.threat + "%";
+
+    if (data.threat <= 25) { 
+        meterText.innerText = "VULNERABLE"; 
+        meterText.style.color = "var(--matrix-green)"; 
+    } else if (data.threat <= 50) { 
+        meterText.innerText = "ELEVATED"; 
+        meterText.style.color = "var(--alert-orange)"; 
+    } else if (data.threat <= 75) { 
+        meterText.innerText = "HIGH RISK"; 
+        meterText.style.color = "var(--danger-red)"; 
+    } else { 
+        meterText.innerText = "CRITICAL COMPROMISE"; 
+        meterText.style.color = "var(--danger-red)"; 
+    }
+}
 </script>
 
 <a href="index.html" style="
@@ -332,8 +348,69 @@ background: rgba(255, 255, 255, 0.05);
 ">
     <span style="font-size: 1.2rem;">🏠</span> Home
 </a>
-
+function typeWriter(element, text) {
+    element.innerHTML = '';
+    let i = 0;
+    let timer = setInterval(() => {
+        if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(timer);
+        }
+    }, 20); // Speed of typing
+}function typeWriter(element, text) {
+    element.innerHTML = '';
+    let i = 0;
+    let timer = setInterval(() => {
+        if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(timer);
+        }
+    }, 20); // Speed of typing
+}
 <style>
+/* The scanning laser line */
+.visualizer::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--matrix-green);
+    box-shadow: 0 0 15px var(--matrix-green);
+    opacity: 0.7;
+    z-index: 5;
+    pointer-events: none;
+    /* The animation name we will toggle */
+    animation: scanLine 3s linear infinite;
+}
+
+/* Hide the scanner when the 'scanning-stopped' class is added */
+.visualizer.scanning-stopped::after {
+    display: none;
+}
+
+@keyframes scanLine {
+    0% { top: 0%; }
+    50% { top: 100%; }
+    100% { top: 0%; }
+}
+
+/* Optional: Add a subtle grid flicker to the visualizer while scanning */
+.visualizer {
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 65, 0.03) 0px,
+        rgba(0, 255, 65, 0.03) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    background-size: 100% 3px;
+}
     a[href="index.html"]:hover {
         background: rgba(255, 255, 255, 0.4);
         transform: scale(1.05);
