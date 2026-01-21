@@ -353,6 +353,33 @@ body::before {
     <div class="footer">
         Science Expo 2026
     </div>
+<a href="feedback.html" class="floating-btn">QR</a>
 
+<style>
+    .floating-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background-color: #007bff; /* Matches your bright blue theme */
+        color: white;
+        text-decoration: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+        z-index: 1000;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .floating-btn:hover {
+        transform: scale(1.1);
+        background-color: #0056b3;
+    }
+</style>
 </body>
 </html>
