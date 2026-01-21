@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback</title>
+    <style>
+        :root {
+            --primary-blue: #003049;
+            --highlight: #0077b6;
+            --cta-color: #d62828; /* A bright red to make the QR pop */
+            --bg-light: #f8fbff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-blue);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .layout {
+            width: 85%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        /* Left Side: Statements */
+        .statement-side h1 {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 40px;
+            font-weight: 800;
+        }
+
+        .statement-side h1 span {
+            color: var(--highlight);
+        }
+
+        .bullet-point {
+            margin-bottom: 30px;
+        }
+
+        .bullet-point h3 {
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .bullet-point p {
+            font-size: 1.2rem;
+            color: #555;
+            margin: 10px 0 0 0;
+            padding-left: 2rem;
+            border-left: 4px solid var(--highlight);
+        }
+
+        /* Right Side: QR Action */
+        .qr-side {
+            background: white;
+            padding: 40px;
+            border-radius: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.08);
+            text-align: center;
+            border: 2px solid #e1e8ed;
+        }
+
+        .qr-side h2 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .qr-wrapper {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            padding: 15px;
+            border: 5px solid var(--primary-blue);
+            border-radius: 20px;
+        }
+
+        .qr-wrapper img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .link-box {
+            margin-top: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .link-box a {
+            color: var(--highlight);
+            text-decoration: none;
+        }
+
+        .footer-names {
+            margin-top: 50px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: #aaa;
+        }
+
+        /* Responsive for mobile/tablets */
+        @media (max-width: 1000px) {
+            .layout { grid-template-columns: 1fr; text-align: center; }
+            .bullet-point p { border-left: none; padding-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        
+        <div class="statement-side">
+            <h1>You are the <span>Human Firewall.</span></h1>
+            
+            <div class="bullet-point">
+                <h3>🚫 Privacy isn't a Secret</h3>
+                <p>It’s about control. Once data is fragmented online, it belongs to the world.</p>
+            </div>
+
+            <div class="bullet-point">
+                <h3>🔢 Math > Guessing</h3>
+                <p>Entropy determines your safety. A longer password isn't just better; it's mathematically unbeatable.</p>
+            </div>
+
+            <div class="bullet-point">
+                <h3>🎭 The Mosaic Effect</h3>
+                <p>Small pieces of public info create a complete target. Hackers don't break in; they piece you together.</p>
+            </div>
+        </div>
+
+        <div class="qr-side">
+            <h2>Scan & Rate</h2>
+            <p>Did we strengthen your firewall?</p>
+            
+            <div class="qr-wrapper">
+                <img src="feedbackURL.png" alt="Scan QR">
+            </div>
+
+            <div class="link-box">
+                <a href="https://bit.ly/CyberHubFeedback">bit.ly/CyberHubFeedback</a>
+            </div>
+
+            <div class="footer-names">
+                SRICHARAN • SAATHVIK • EZEKIEL
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
